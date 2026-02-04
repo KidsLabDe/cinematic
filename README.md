@@ -146,5 +146,6 @@ Remove a saved position.
 Get a list of saved positions.
 
 # Copyright
-Copyright (c) 2021 Dmitry Kostenko.
+Copyright (c) 2021 Dmitry Kostenko<br />
+Copyright (c) 2026 KidsLab gGmbH<br />
 Code License: GNU AGPL v3.0

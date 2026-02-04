@@ -159,6 +159,16 @@ function waypoint.playlist_remove(name)
 	wp_storage:set_string("wp_playlist_index", minetest.serialize(next_index))
 end
 
+minetest.register_privilege("waypoint_run", {
+	description = "Start waypoint playlists",
+	give_to_singleplayer = false,
+})
+
+minetest.register_privilege("waypoint_edit", {
+	description = "Edit waypoints and playlists",
+	give_to_singleplayer = false,
+})
+
 -- Core API
 local cinematic
 cinematic = {
@@ -444,6 +454,9 @@ cinematic.register_command("wp", {
 	run = function(player, args)
 		local sub = args[1]
 		if sub == "add" then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_edit = true }) then
+				return false, "Missing privilege: waypoint_edit"
+			end
 			local mode = args[2]
 			local stop = true
 			if mode == "flow" or mode == "fluent" or mode == "continuous" or mode == "go" then
@@ -456,6 +469,9 @@ cinematic.register_command("wp", {
 			minetest.chat_send_player(player:get_player_name(), "Waypoint "..count.." added.")
 			return true
 		elseif sub == "clear" then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_edit = true }) then
+				return false, "Missing privilege: waypoint_edit"
+			end
 			waypoint.clear(player)
 			minetest.chat_send_player(player:get_player_name(), "Waypoints cleared.")
 			return true
@@ -469,6 +485,9 @@ cinematic.register_command("playlist", {
 	run = function(player, args)
 		local sub = args[1]
 		if sub == "save" then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_edit = true }) then
+				return false, "Missing privilege: waypoint_edit"
+			end
 			local name = args[2]
 			if name == nil or name == "" then
 				return false, "Missing playlist name"
@@ -481,6 +500,9 @@ cinematic.register_command("playlist", {
 			minetest.chat_send_player(player:get_player_name(), "Playlist "..name.." saved.")
 			return true
 		elseif sub == "start" then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_run = true }) then
+				return false, "Missing privilege: waypoint_run"
+			end
 			local name = nil
 			local params = {}
 			for i = 2,#args do
@@ -517,6 +539,9 @@ cinematic.register_command("playlist", {
 			cinematic.start(player, "waypoints", params)
 			return true
 		elseif sub == "remove" then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_edit = true }) then
+				return false, "Missing privilege: waypoint_edit"
+			end
 			local name = args[2]
 			if name == nil or name == "" then
 				return false, "Missing playlist name"
@@ -573,6 +598,9 @@ cinematic.register_command("start", {
 
 		local list = nil
 		if list_name ~= nil then
+			if not minetest.check_player_privs(player:get_player_name(), { waypoint_run = true }) then
+				return false, "Missing privilege: waypoint_run"
+			end
 			list = waypoint.playlist_get(list_name)
 			if list == nil or #list == 0 then
 				return false, "Playlist not found: "..list_name
@@ -654,7 +682,7 @@ minetest.register_chatcommand("cc", {
 minetest.register_chatcommand("wp", {
 	params = "(add [stop|flow] | clear | start [name] [speed=<speed>] | cancel | playlist (save <name> | start <name> [speed=<speed>] | remove <name> | list))",
 	description = "Waypoint camera path control",
-	privs = { fly = true },
+	privs = { fly = true, teleport = true, noclip = true },
 	func = function(name, cmdline)
 		local player = minetest.get_player_by_name(name)
 		local parts = string_split(cmdline, " ")
